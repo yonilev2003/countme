@@ -5,9 +5,13 @@ import { Toaster } from 'sonner';
 import { useEffect } from 'react';
 
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
-// Pages — Auth / Onboarding
+// Pages — Auth
 import Auth from '@/pages/Auth';
+import ResetPassword from '@/pages/ResetPassword';
+
+// Pages — Onboarding
 import Onboarding from '@/pages/Onboarding';
 
 // Pages — Core
@@ -25,12 +29,6 @@ const queryClient = new QueryClient({
   },
 });
 
-/**
- * Root handler:
- * - Unauthenticated → show Auth page
- * - Authenticated, incomplete onboarding → /onboarding
- * - Authenticated, complete → /dashboard
- */
 function RootRedirect() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading, userProfile } = useAuth();
@@ -38,7 +36,7 @@ function RootRedirect() {
   useEffect(() => {
     if (isLoading) return;
     if (!isAuthenticated) return;
-    if (userProfile === null) return; // still loading profile
+    if (userProfile === null) return;
 
     if (!userProfile.isRegistrationComplete) {
       navigate('/onboarding', { replace: true });
@@ -53,36 +51,32 @@ function RootRedirect() {
 function AppRoutes() {
   return (
     <Routes>
-      {/* Public */}
-      <Route path="/"     element={<RootRedirect />} />
-      <Route path="/auth" element={<RootRedirect />} />
-
-      {/* Onboarding (protected inside component) */}
-      <Route path="/onboarding" element={<Onboarding />} />
-
-      {/* Core app (protected inside each component) */}
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/income"    element={<IncomeDetails />} />
-      <Route path="/expenses"  element={<ExpenseDetails />} />
-      <Route path="/expense"   element={<ExpenseEntry />} />
-
-      {/* Catch-all */}
-      <Route path="*" element={<NotFound />} />
+      <Route path="/"               element={<RootRedirect />} />
+      <Route path="/auth"           element={<RootRedirect />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/onboarding"     element={<Onboarding />} />
+      <Route path="/dashboard"      element={<Dashboard />} />
+      <Route path="/income"         element={<IncomeDetails />} />
+      <Route path="/expenses"       element={<ExpenseDetails />} />
+      <Route path="/expense"        element={<ExpenseEntry />} />
+      <Route path="*"               element={<NotFound />} />
     </Routes>
   );
 }
 
 export default function App() {
   return (
-    <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <Toaster richColors position="top-center" dir="rtl" />
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
-        </AuthProvider>
-      </QueryClientProvider>
-    </HelmetProvider>
+    <ErrorBoundary>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <Toaster richColors position="top-center" dir="rtl" />
+            <BrowserRouter>
+              <AppRoutes />
+            </BrowserRouter>
+          </AuthProvider>
+        </QueryClientProvider>
+      </HelmetProvider>
+    </ErrorBoundary>
   );
 }

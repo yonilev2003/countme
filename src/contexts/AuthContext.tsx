@@ -75,6 +75,8 @@ interface AuthContextValue {
   isFinancialDataLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+  updatePassword: (newPassword: string) => Promise<void>;
   resendVerificationEmail: (email: string) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
@@ -99,7 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isFinancialDataLoading, setIsFinancialDataLoading] = useState(false);
   const fetchingFinancials = useRef(false);
 
-  const isAuthenticated = !!(session && user?.email_confirmed_at);
+  const isAuthenticated = !!session;
 
   // ---------- profile ----------
 
@@ -222,26 +224,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // ---------- methods ----------
 
   const login = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      if (error.message.includes('Email not confirmed')) {
-        throw new Error('EMAIL_NOT_CONFIRMED');
-      }
       if (error.message.includes('Invalid login credentials')) {
         throw new Error('מייל או סיסמה שגויים');
       }
       throw error;
     }
-
-    if (data.user && !data.user.email_confirmed_at) {
-      throw new Error('EMAIL_NOT_CONFIRMED');
-    }
   };
 
   const signup = async (email: string, password: string) => {
     const { error } = await supabase.auth.signUp({ email, password });
-
     if (error) {
       if (error.message.includes('User already registered')) {
         throw new Error('משתמש עם מייל זה כבר רשום. נסה להתחבר');
@@ -250,13 +243,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const resendVerificationEmail = async (email: string) => {
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email,
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
     });
     if (error) throw error;
   };
+
+  const updatePassword = async (newPassword: string) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw error;
+  };
+
+  // kept for potential future use — no-op when email verification is disabled
+  const resendVerificationEmail = async (_email: string) => {};
 
   const logout = async () => {
     clearCache();
@@ -306,6 +306,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         updateProfile,
         completeRegistration,
         refreshFinancialData,
+        resetPassword,
+        updatePassword,
       }}
     >
       {children}
