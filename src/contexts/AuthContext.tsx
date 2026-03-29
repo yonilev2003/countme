@@ -92,6 +92,8 @@ const emptyFinancials: FinancialData = {
   year: new Date().getFullYear(),
 };
 
+const PROFILE_TIMEOUT_MS = 10_000;
+
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -107,8 +109,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAuthenticated = !!session;
 
   // ---------- profile ----------
-
-  const PROFILE_TIMEOUT_MS = 10_000;
 
   const fetchProfile = useCallback(async (userId: string) => {
     const controller = new AbortController();

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 
-type Mode = 'login' | 'signup' | 'forgot' | 'verify-email';
+type Mode = 'login' | 'signup' | 'forgot' | 'forgot-sent' | 'verify-email';
 
 export default function Auth() {
   const { login, signup, signInWithGoogle, resetPassword, resendVerificationEmail } = useAuth();
@@ -11,7 +11,6 @@ export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [forgotSent, setForgotSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,10 +23,33 @@ export default function Auth() {
         setMode('verify-email');
       } else {
         await resetPassword(email);
-        setForgotSent(true);
+        setMode('forgot-sent');
       }
     } catch (err) {
       toast(err instanceof Error ? err.message : 'אירעה שגיאה');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      await signInWithGoogle();
+      // OAuth redirects away — loading state intentionally persists until navigation
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'שגיאה בהתחברות עם Google');
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setIsLoading(true);
+    try {
+      await resendVerificationEmail(email);
+      toast('מייל אימות נשלח מחדש');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'שגיאה בשליחה');
     } finally {
       setIsLoading(false);
     }
@@ -48,24 +70,14 @@ export default function Auth() {
             לחץ על הקישור במייל כדי לאמת את החשבון ולהמשיך.
           </p>
           <button
-            onClick={async () => {
-              setIsLoading(true);
-              try {
-                await resendVerificationEmail(email);
-                toast('מייל אימות נשלח מחדש');
-              } catch (err) {
-                toast(err instanceof Error ? err.message : 'שגיאה בשליחה');
-              } finally {
-                setIsLoading(false);
-              }
-            }}
+            onClick={handleResendVerification}
             disabled={isLoading}
             className="w-full border border-border rounded-xl py-2.5 text-sm font-medium hover:bg-muted transition-colors mb-3 disabled:opacity-60"
           >
             {isLoading ? 'שולח...' : 'שלח שוב'}
           </button>
           <button
-            onClick={() => { setMode('login'); }}
+            onClick={() => setMode('login')}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             חזרה להתחברות
@@ -76,7 +88,7 @@ export default function Auth() {
   }
 
   // ── Forgot password — success screen ──────────────────────────────────────
-  if (mode === 'forgot' && forgotSent) {
+  if (mode === 'forgot-sent') {
     return (
       <AuthShell>
         <div className="text-center">
@@ -86,7 +98,7 @@ export default function Auth() {
             שלחנו קישור לאיפוס הסיסמה לכתובת <strong>{email}</strong>.
           </p>
           <button
-            onClick={() => { setMode('login'); setForgotSent(false); }}
+            onClick={() => setMode('login')}
             className="text-primary text-sm underline"
           >
             חזרה להתחברות
@@ -159,11 +171,7 @@ export default function Auth() {
       {/* Google OAuth */}
       <button
         type="button"
-        onClick={async () => {
-          setIsLoading(true);
-          try { await signInWithGoogle(); }
-          catch (err) { toast(err instanceof Error ? err.message : 'שגיאה בהתחברות עם Google'); setIsLoading(false); }
-        }}
+        onClick={handleGoogleSignIn}
         disabled={isLoading}
         className="w-full flex items-center justify-center gap-3 border border-border rounded-xl py-2.5 bg-background hover:bg-muted transition-colors text-sm font-medium disabled:opacity-60"
       >
