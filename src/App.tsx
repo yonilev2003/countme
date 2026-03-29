@@ -31,19 +31,26 @@ const queryClient = new QueryClient({
 
 function RootRedirect() {
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading, userProfile } = useAuth();
+  const { isAuthenticated, isLoading, isProfileLoading, userProfile } = useAuth();
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || isProfileLoading) return;
     if (!isAuthenticated) return;
-    if (userProfile === null) return;
 
-    if (!userProfile.isRegistrationComplete) {
+    if (!userProfile || !userProfile.isRegistrationComplete) {
       navigate('/onboarding', { replace: true });
     } else {
       navigate('/dashboard', { replace: true });
     }
-  }, [isAuthenticated, isLoading, userProfile, navigate]);
+  }, [isAuthenticated, isLoading, isProfileLoading, userProfile, navigate]);
+
+  if (isLoading || (isAuthenticated && isProfileLoading)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900">
+        <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return <Auth />;
 }

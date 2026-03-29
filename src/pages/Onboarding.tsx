@@ -5,18 +5,18 @@ import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading, userProfile } = useAuth();
+  const { isAuthenticated, isLoading, isProfileLoading, userProfile } = useAuth();
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || isProfileLoading) return;
     if (!isAuthenticated) {
       navigate('/');
     } else if (userProfile?.isRegistrationComplete) {
       navigate('/dashboard');
     }
-  }, [isAuthenticated, isLoading, userProfile, navigate]);
+  }, [isAuthenticated, isLoading, isProfileLoading, userProfile, navigate]);
 
-  if (isLoading) {
+  if (isLoading || isProfileLoading) {
     return (
       <div className="min-h-screen gradient-hero flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />

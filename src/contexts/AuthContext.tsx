@@ -71,6 +71,7 @@ interface AuthContextValue {
   userProfile: UserProfile | null;
   userId: string | null;
   isLoading: boolean;
+  isProfileLoading: boolean;
   financialData: FinancialData;
   isFinancialDataLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
@@ -97,6 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isProfileLoading, setIsProfileLoading] = useState(false);
   const [financialData, setFinancialData] = useState<FinancialData>(emptyFinancials);
   const [isFinancialDataLoading, setIsFinancialDataLoading] = useState(false);
   const fetchingFinancials = useRef(false);
@@ -105,15 +107,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // ---------- profile ----------
 
-  const fetchProfile = useCallback(async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
+  const PROFILE_TIMEOUT_MS = 10_000;
 
-    if (error || !data) return null;
-    return toUserProfile(data);
+  const fetchProfile = useCallback(async (userId: string) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), PROFILE_TIMEOUT_MS);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .abortSignal(controller.signal)
+        .single();
+      if (error || !data) return null;
+      return toUserProfile(data);
+    } catch {
+      return null;
+    } finally {
+      clearTimeout(timer);
+    }
   }, []);
 
   // ---------- financial data ----------
@@ -180,8 +192,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const cached = loadCache(s.user.id);
         if (cached) setFinancialData(cached);
 
+        setIsProfileLoading(true);
         fetchProfile(s.user.id).then((p) => {
           if (p) setUserProfile(p);
+          setIsProfileLoading(false);
         });
         fetchFinancialData(s.user.id);
       }
@@ -203,8 +217,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const cached = loadCache(s.user.id);
           if (cached) setFinancialData(cached);
 
-          const profile = await fetchProfile(s.user.id);
-          setUserProfile(profile);
+          setIsProfileLoading(true);
+          fetchProfile(s.user.id).then((p) => {
+            if (p) setUserProfile(p);
+            setIsProfileLoading(false);
+          });
           fetchFinancialData(s.user.id);
         }
 
@@ -297,6 +314,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         userProfile,
         userId: user?.id ?? null,
         isLoading,
+        isProfileLoading,
         financialData,
         isFinancialDataLoading,
         login,
