@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import KpiCard from '@/components/KpiCard';
+import { formatCurrency } from '@/lib/utils';
 
 const MOCK = {
   year: 2026,
@@ -106,9 +107,9 @@ export default function Demo() {
               <p className="text-sm font-bold">ניכויים שזיהה הבלש</p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {MOCK.deductions.items.length} קטגוריות ·{' '}
-                ₪{MOCK.deductions.totalMonthly.toLocaleString('he-IL')} לחודש ·{' '}
+                {formatCurrency(MOCK.deductions.totalMonthly)} לחודש ·{' '}
                 <span className="text-success font-semibold">
-                  ₪{MOCK.deductions.totalAnnual.toLocaleString('he-IL')} לשנה
+                  {formatCurrency(MOCK.deductions.totalAnnual)} לשנה
                 </span>
               </p>
               <p className="text-xs text-muted-foreground mt-1">

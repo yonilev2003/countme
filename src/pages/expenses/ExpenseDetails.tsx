@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { formatCurrency } from '@/lib/utils';
 
 interface Expense {
   id: string;
@@ -76,7 +77,7 @@ export default function ExpenseDetails() {
         <div className="bg-card rounded-2xl shadow-card p-5">
           <p className="text-xs text-muted-foreground">סה"כ הוצאות מוכרות השנה</p>
           <p className="text-2xl font-extrabold text-destructive">
-            ₪{total.toLocaleString('he-IL')}
+            {formatCurrency(total)}
           </p>
         </div>
 
@@ -112,7 +113,7 @@ export default function ExpenseDetails() {
                 </div>
                 <div className="text-left flex-shrink-0 mr-3">
                   <p className="text-sm font-bold text-destructive">
-                    -₪{Number(exp.amount).toLocaleString('he-IL')}
+                    -{formatCurrency(Number(exp.amount))}
                   </p>
                   <p className="text-xs text-muted-foreground">{exp.recognition_percentage}% מוכר</p>
                 </div>

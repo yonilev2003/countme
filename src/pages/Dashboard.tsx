@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import type { UserType } from '@/types/user';
 import { INCOME_LIMIT } from '@/types/user';
 import KpiCard from '@/components/KpiCard';
+import { formatCurrency } from '@/lib/utils';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -65,7 +66,7 @@ export default function Dashboard() {
             <div className="flex justify-between items-center mb-2">
               <p className="text-sm font-semibold">מחזור מול תקרה שנתית</p>
               <p className="text-xs text-muted-foreground">
-                ₪{totalIncome.toLocaleString('he-IL')} / ₪{INCOME_LIMIT.toLocaleString('he-IL')}
+                {formatCurrency(totalIncome)} / {formatCurrency(INCOME_LIMIT)}
               </p>
             </div>
             <div className="w-full bg-muted rounded-full h-2.5">
@@ -187,9 +188,9 @@ function DeductionsTeaser({ summary }: { summary: DeductionTeaserData }) {
         <div>
           <p className="text-sm font-bold">ניכויים שזיהה הבלש</p>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {summary.items.length} קטגוריות · ₪{summary.totalMonthly.toLocaleString('he-IL')} לחודש ·{' '}
+            {summary.items.length} קטגוריות · {formatCurrency(summary.totalMonthly)} לחודש ·{' '}
             <span className="text-success font-semibold">
-              ₪{summary.totalAnnual.toLocaleString('he-IL')} לשנה
+              {formatCurrency(summary.totalAnnual)} לשנה
             </span>
           </p>
         </div>

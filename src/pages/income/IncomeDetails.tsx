@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { formatCurrency } from '@/lib/utils';
 
 interface Income {
   id: string;
@@ -92,7 +93,7 @@ export default function IncomeDetails() {
           <div>
             <p className="text-xs text-muted-foreground">סה"כ השנה</p>
             <p className="text-2xl font-extrabold text-success">
-              ₪{total.toLocaleString('he-IL')}
+              {formatCurrency(total)}
             </p>
           </div>
           <button
@@ -198,7 +199,7 @@ export default function IncomeDetails() {
                   </p>
                 </div>
                 <p className="text-base font-bold text-success flex-shrink-0 mr-4">
-                  +₪{Number(income.amount).toLocaleString('he-IL')}
+                  +{formatCurrency(Number(income.amount))}
                 </p>
               </div>
             ))}

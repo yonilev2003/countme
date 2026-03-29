@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import type { UserType } from '@/types/user';
+import { formatCurrency } from '@/lib/utils';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -350,7 +351,7 @@ function DeductionsSummaryCard({ summary }: { summary: DeductionsSummary }) {
             </div>
             <div className="text-left flex-shrink-0">
               <p className="text-sm font-bold text-foreground">
-                ₪{item.estimatedMonthly.toLocaleString('he-IL')}
+                {formatCurrency(item.estimatedMonthly)}
               </p>
               <p className="text-xs text-muted-foreground text-left">
                 {item.recognitionPercentage}% הכרה
@@ -365,13 +366,13 @@ function DeductionsSummaryCard({ summary }: { summary: DeductionsSummary }) {
         <div className="flex justify-between items-center mb-1">
           <span className="text-sm text-muted-foreground">סה"כ לחודש</span>
           <span className="text-base font-bold text-foreground">
-            ₪{summary.totalMonthly.toLocaleString('he-IL')}
+            {formatCurrency(summary.totalMonthly)}
           </span>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-sm text-muted-foreground">סה"כ לשנה</span>
           <span className="text-lg font-extrabold text-success">
-            ₪{summary.totalAnnual.toLocaleString('he-IL')}
+            {formatCurrency(summary.totalAnnual)}
           </span>
         </div>
       </div>
