@@ -76,6 +76,7 @@ interface AuthContextValue {
   isFinancialDataLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
   resendVerificationEmail: (email: string) => Promise<void>;
@@ -260,6 +261,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    });
+    if (error) throw error;
+  };
+
   const resetPassword = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
@@ -272,8 +281,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error;
   };
 
-  // kept for potential future use — no-op when email verification is disabled
-  const resendVerificationEmail = async (_email: string) => {};
+  const resendVerificationEmail = async (email: string) => {
+    const { error } = await supabase.auth.resend({ type: 'signup', email });
+    if (error) throw error;
+  };
 
   const logout = async () => {
     clearCache();
@@ -319,6 +330,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isFinancialDataLoading,
         login,
         signup,
+        signInWithGoogle,
         resendVerificationEmail,
         logout,
         updateProfile,
