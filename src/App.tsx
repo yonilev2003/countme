@@ -21,6 +21,7 @@ import ExpenseDetails from '@/pages/expenses/ExpenseDetails';
 import ExpenseEntry from '@/pages/expenses/ExpenseEntry';
 
 // Pages — Misc
+import Demo from '@/pages/Demo';
 import NotFound from '@/pages/NotFound';
 
 const queryClient = new QueryClient({
@@ -66,6 +67,7 @@ function AppRoutes() {
       <Route path="/income"         element={<IncomeDetails />} />
       <Route path="/expenses"       element={<ExpenseDetails />} />
       <Route path="/expense"        element={<ExpenseEntry />} />
+      <Route path="/demo"           element={<Demo />} />
       <Route path="*"               element={<NotFound />} />
     </Routes>
   );
