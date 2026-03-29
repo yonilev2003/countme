@@ -40,6 +40,11 @@ interface Props {
   onSkip: () => void;
 }
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const YEHORAM_OPENING =
+  'היי, אני יהורם, העוזר האישי שלך. אני משתמש במנוע הAI האפקטיבי ביותר כדי להבין יותר טוב את הצורך שלך ולחסוך לך שעות עבודה ושתישן יותר טוב בלילה. רוצה טיפים איך הכי אפקטיבי לדבר איתי? בוא נתחיל בלשמוע קצת על העסק שלך - מה אתה עוסק, איך נראה היומיום שלך, ומה ההוצאות המרכזיות שלך.';
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ExpenseDetectiveChat({
@@ -64,11 +69,26 @@ export default function ExpenseDetectiveChat({
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
-  // Load first AI message on mount
+  // Set hardcoded opening message on mount — instant, no API call
   useEffect(() => {
-    callAI([]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const opening: ChatMessage = { id: crypto.randomUUID(), role: 'assistant', content: YEHORAM_OPENING };
+    setMessages([opening]);
+    setApiHistory([{ role: 'assistant', content: YEHORAM_OPENING }]);
   }, []);
+
+  // ─── Save chat history to Supabase ────────────────────────────────────────
+
+  async function saveChatHistory(history: ApiMessage[]) {
+    if (!userId) return;
+    try {
+      await supabase
+        .from('profiles')
+        .update({ chat_history: history as never })
+        .eq('user_id', userId);
+    } catch {
+      // Non-blocking — don't surface to user
+    }
+  }
 
   // ─── API call ──────────────────────────────────────────────────────────────
 
@@ -87,7 +107,9 @@ export default function ExpenseDetectiveChat({
         content: data.message ?? 'מצטער, נתקלתי בבעיה. אנא נסה שוב.',
       };
       setMessages((prev) => [...prev, assistantMsg]);
-      setApiHistory((prev) => [...prev, { role: 'assistant', content: assistantMsg.content }]);
+      const newHistory: ApiMessage[] = [...history, { role: 'assistant', content: assistantMsg.content }];
+      setApiHistory(newHistory);
+      saveChatHistory(newHistory);
 
       if (data.isComplete && data.summary) {
         setIsComplete(true);
@@ -95,7 +117,7 @@ export default function ExpenseDetectiveChat({
       }
     } catch (err) {
       console.error('expense-detective error:', err);
-      toast('שגיאה בחיבור לבלש ההוצאות. אפשר לנסות שוב או לדלג.');
+      toast('שגיאה בחיבור ליהורם. אפשר לנסות שוב או לדלג.');
     } finally {
       setIsLoading(false);
     }
@@ -172,9 +194,9 @@ export default function ExpenseDetectiveChat({
               🔍
             </div>
             <div>
-              <h1 className="text-base font-bold leading-none">בלש ההוצאות</h1>
+              <h1 className="text-base font-bold leading-none">יהורם</h1>
               <p className="text-xs text-muted-foreground mt-0.5">
-                יועץ מס AI · חוקי 2026
+                עוזר אישי AI · יועץ מס 2026
               </p>
             </div>
           </div>

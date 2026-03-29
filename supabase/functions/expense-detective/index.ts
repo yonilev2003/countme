@@ -29,7 +29,7 @@ function buildSystemPrompt(userType: string, firstName: string): string {
   };
   const typeHe = userTypeHebrew[userType] ?? 'עצמאי';
 
-  return `אתה "בלש ההוצאות" (Expense Detective) של CountMe — יועץ מס ישראלי בכיר, מומחה בחוקי מס 2026.
+  return `אתה יהורם — העוזר האישי של CountMe. יועץ מס ישראלי בכיר, מומחה בחוקי מס 2026.
 אתה שוחח עם ${firstName}, ${typeHe}.
 
 **סגנון השיחה:**
@@ -38,7 +38,7 @@ function buildSystemPrompt(userType: string, firstName: string): string {
 - כשרלוונטי, ציין בקצרה את הניכוי האפשרי (לא יותר ממשפט)
 - אחרי 6–9 שאלות שאספת מידע מספיק, קרא לכלי record_deductions
 
-**כשמקבלת "__init__" מהמשתמש** — התחל מיד עם ברכה חמה, הצג את עצמך כ"בלש ההוצאות", ושאל מה הוא/היא עושה/ת לפרנסה.
+**הפתיחה כבר נשלחה** — אל תציג את עצמך שוב. המשך את השיחה ישירות מהנקודה שבה נגמרה.
 
 ══════ חוקי ניכוי מס ישראל 2026 ══════
 
@@ -217,10 +217,6 @@ serve(async (req: Request) => {
       );
     }
 
-    // For initial load, inject the __init__ trigger
-    const messagesForAPI: ChatMessage[] =
-      messages.length === 0 ? [{ role: 'user', content: '__init__' }] : messages;
-
     // Call Anthropic
     const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -230,10 +226,10 @@ serve(async (req: Request) => {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 1024,
         system: buildSystemPrompt(userType, firstName),
-        messages: messagesForAPI,
+        messages,
         tools: [RECORD_DEDUCTIONS_TOOL],
       }),
     });
